@@ -16,7 +16,6 @@ Deploy a hassle-free Caddy server with built-in support for Cloudflare DNS-01 AC
   - [ACME DNS Challenge Configuration](#acme-dns-challenge-configuration)
   - [Creating a Cloudflare API Token](#creating-a-cloudflare-api-token)
 - [Platform Support](#platform-support)
-  - [Raspberry Pi](#raspberry-pi-support)
 - [Tags](#tags)
 - [Contributing](#contributing)
 - [License](#license)
@@ -39,17 +38,15 @@ Deploy a hassle-free Caddy server with built-in support for Cloudflare DNS-01 AC
 To use the pre-built Docker image, pull it from the GitHub Container Registry:
 
 ```sh
-docker pull ghcr.io/caddybuilds/caddy-cloudflare:latest
-docker pull caddybuilds/caddy-cloudflare:latest
+docker pull ghcr.io/write-erase/caddy-cloudflare:latest
 # alpine
-docker pull ghcr.io/caddybuilds/caddy-cloudflare:alpine
-docker pull caddybuilds/caddy-cloudflare:alpine
+docker pull ghcr.io/write-erase/caddy-cloudflare:alpine
 ```
 You can use the image in your Docker setup. Here is an example `docker-compose.yml` file:
 ```yaml
 services:
   caddy:
-    image: ghcr.io/caddybuilds/caddy-cloudflare:latest
+    image: ghcr.io/write-erase/caddy-cloudflare:latest
     restart: unless-stopped
     cap_add:
       - NET_ADMIN
@@ -222,7 +219,7 @@ For example, in a Docker environment, you can set this environment variable in y
 ```yaml
 services:
   caddy:
-    image: ghcr.io/caddybuilds/caddy-cloudflare:latest
+    image: ghcr.io/write-erase/caddy-cloudflare:latest
     restart: unless-stopped
     cap_add:
       - NET_ADMIN
@@ -277,7 +274,7 @@ tls {
 
 ## Tags
 
-The [caddy-cloudflare](https://github.com/caddybuilds/caddy-cloudflare/pkgs/container/caddy-cloudflare) image on GitHub Container Registry and Docker Hub provides the following tags:
+The [caddy-cloudflare](https://github.com/write-erase/caddy-cloudflare/pkgs/container/caddy-cloudflare) image on GitHub Container Registry provides the following tags:
 
 - **`latest`**: 
   - Always points to the most recent stable release of Caddy with the Cloudflare DNS module.
@@ -288,7 +285,7 @@ The [caddy-cloudflare](https://github.com/caddybuilds/caddy-cloudflare/pkgs/cont
   - Examples include:
     - **`2.7.6`**: Full version tag for Caddy version 2.7.6, ensuring you are using this exact release. 
     
-         (eg: ```docker pull ghcr.io/caddybuilds/caddy-cloudflare:2.8.0``` )
+         (eg: ```docker pull ghcr.io/write-erase/caddy-cloudflare:2.8.0``` )
     - **`2.7`**: Minor version tag for the latest patch release within the 2.7 series, allowing for minor updates without breaking changes.
     - **`2`**: Major version tag for the latest release within the 2.x series, providing updates within the major version while maintaining compatibility.
 
@@ -313,52 +310,34 @@ The Alpine-based image provides a lightweight alternative, based on the popular 
 - **Minimal Base**: Alpine Linux uses musl libc instead of glibc, making it lightweight. However, this may lead to compatibility issues with software that requires glibc.
 - **Customization**: To keep the image minimal, additional tools (such as git or bash) are not included by default. You can customize the image by adding the necessary packages in your Dockerfile.
 
-To use the Alpine-based image, pull it from the GitHub Container Registry or Docker Hub:
+To use the Alpine-based image, pull it from the GitHub Container Registry:
 
 ```sh
-docker pull ghcr.io/caddybuilds/caddy-cloudflare:alpine
-docker pull caddybuilds/caddy-cloudflare:alpine
+docker pull ghcr.io/write-erase/caddy-cloudflare:alpine
 ```
 
-### Raspberry Pi Support
-
-This Docker image is optimized for Raspberry Pi, allowing you to deploy Caddy with Cloudflare DNS integration on these popular single-board computers. Whether you are using a Raspberry Pi 3 or the latest Raspberry Pi 4, this image provides the necessary support for seamless operation.
-
-To use the image on a Raspberry Pi, ensure you are running a compatible operating system (such as Raspberry Pi OS) and have Docker installed. You can then pull the image and run it as you would on any other system:
-
-```sh
-docker pull ghcr.io/caddybuilds/caddy-cloudflare:latest
-```
 # Building Your Own Docker Image
 If you prefer to build your own Docker image, follow these steps:
 
 ## Prerequisites
 
 - GitHub account
-- DockerHub account (if you wish to push the image to DockerHub as well)
 - GitHub Secrets configured:
   - `GITHUB_TOKEN` (automatically available in GitHub Actions)
-  - `DOCKERHUB_USERNAME` (optional, if you want to push to DockerHub)
-  - `DOCKERHUB_TOKEN` (optional, if you want to push to DockerHub)
-  - `DOCKERHUB_REPOSITORY_NAME` (optional, can be set as a repository secret or variable to customize the target DockerHub repository)
 
 
 ## Setup Instructions
 
-1. **[Fork this repository](https://github.com/caddybuilds/caddy-cloudflare/fork)** to your GitHub account.
+1. **[Fork this repository](https://github.com/write-erase/caddy-cloudflare/fork)** to your GitHub account.
 
 2. **Set up GitHub Secrets**:
    - Go to your repository on GitHub.
    - Navigate to `Settings` > `Secrets and variables` > `Actions`.
-   - Add the following secrets:
-     - `GITHUB_TOKEN`: This is automatically available in GitHub Actions.
-     - `DOCKERHUB_USERNAME`: Your DockerHub username (optional).
-     - `DOCKERHUB_TOKEN`: Your DockerHub access token (optional).
-     - `DOCKERHUB_REPOSITORY_NAME` (optional, can be set as a repository secret or variable to customize the target DockerHub repository)
+   - No secrets are required. `GITHUB_TOKEN` is provided automatically by GitHub Actions, and images are pushed to the GitHub Container Registry.
 
 3. **Manually trigger the workflow** (optional):
    - Go to the `Actions` tab in your GitHub repository.
-   - Select the `Build and Push Docker Image` workflow.
+   - Select the `Build and Push Standard Docker Image` workflow (or the Alpine one).
    - Click the `Run workflow` button to trigger the build process manually.
 
 4. **Enable the workflow**:
