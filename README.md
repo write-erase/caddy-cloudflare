@@ -338,26 +338,32 @@ You can use the built Docker image in your projects. Here is an example of how t
 ```yaml
 services:
   caddy:
-    image: ghcr.io/YOUR_GITHUB_USERNAME/YOUR_GITHUB_REPOSITORY_NAME:latest
-    restart: unless-stopped
-    cap_add:
-      - NET_ADMIN
+    image: ghcr.io/write-erase/caddy-cloudflare:latest
+    container_name: caddy
     ports:
-      - "80:80"
+      - "80:80" # Optional, only needed if you want to use HTTP on port 80.
       - "443:443"
-      - "443:443/udp"
     volumes:
-      - $PWD/Caddyfile:/etc/caddy/Caddyfile
-      - $PWD/site:/srv
-      - caddy_data:/data
-      - caddy_config:/config
+      - /home/docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - /home/docker/caddy/site:/srv # Optional, only needed if hosting a static website with Caddy.
+      - /home/docker/caddy/data:/data
+      - /home/docker/caddy/config:/config
+      - /home/docker/caddy/logs:/var/log/caddy
     environment:
       - CLOUDFLARE_API_TOKEN=your_cloudflare_api_token
-
-volumes:
-  caddy_data:
-    external: true
-  caddy_config:
+      - TZ=America/Chicago
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    user: "1000:1000" # Optional: specify the host user's UID:GID
+    restart: unless-stopped
 ```
 Defining the data volume as [external](https://docs.docker.com/compose/compose-file/compose-file-v3/#external) makes sure `docker-compose down` does not delete the volume. You may need to create it manually using `docker volume create caddy_data`.
 
