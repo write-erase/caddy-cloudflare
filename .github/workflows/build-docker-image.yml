@@ -66,9 +66,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
@@ -146,6 +143,22 @@ jobs:
             org.opencontainers.image.licenses=MIT
             org.opencontainers.image.vendor=${{ github.repository_owner }}
 
+      - name: Look up latest versions of security-sensitive Go modules
+        run: |
+          # Add module paths here to keep them at their newest release.
+          MODULES="golang.org/x/net github.com/go-chi/chi/v5"
+          FLAGS=""
+          for m in $MODULES; do
+            v=$(curl -fsSL "https://proxy.golang.org/${m}/@latest" | jq -r .Version || true)
+            if [ -n "$v" ] && [ "$v" != "null" ]; then
+              echo "Using ${m} ${v}"
+              FLAGS="${FLAGS} --replace ${m}=${m}@${v}"
+            else
+              echo "::warning::Lookup failed for ${m}; leaving it as Caddy ships it"
+            fi
+          done
+          echo "GO_REPLACES=${FLAGS}" >> $GITHUB_ENV
+
       - name: Build and push Docker image
         id: build
         uses: docker/build-push-action@v7
@@ -156,7 +169,8 @@ jobs:
           push: true
           build-args: |
             CADDY_VERSION=${{ env.VERSION }}
-          platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le,linux/s390x
+            GO_REPLACES=${{ env.GO_REPLACES }}
+          platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 

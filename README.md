@@ -27,7 +27,7 @@ Deploy a hassle-free Caddy server with built-in support for Cloudflare DNS-01 AC
 - **Continuous Integration**: Utilizes GitHub Actions for seamless CI/CD.
 - **Cloudflare DNS Integration**: Integrates Cloudflare DNS for automatic SSL certificate management.
 - **Cloudflare Proxy IP Trust**: Includes the [caddy-cloudflare-ip](https://github.com/WeidiDeng/caddy-cloudflare-ip) module to automatically trust Cloudflare’s proxy IP ranges, ensuring correct client IP addresses are passed through and logged.
-- **Multi-Platform Support**: Builds images for multiple architectures, including `amd64`, `arm64`, `arm/v7` (Raspberry Pi), `ppc64le`, and `s390x` , ensuring compatibility across a wide range of devices and systems.
+- **Platform**: Builds `linux/amd64` (x86_64) images only, which keeps builds fast.
 - **Alpine-based Image**: Provides a lightweight Alpine-based image for smaller size and faster deployment.
 - **Manual Trigger**: Allows manual triggering of the build process.
 - **Open Source**: Contributions are welcome under the MIT License.
@@ -299,13 +299,9 @@ The [caddy-cloudflare](https://github.com/caddybuilds/caddy-cloudflare/pkgs/cont
 
 ## Platform Support
 
-The `caddybuilds/caddy-cloudflare` image is built to support multiple platforms, ensuring compatibility across a wide range of devices and systems. The supported platforms include:
+This fork builds for a single platform:
 
 - **linux/amd64**: Standard x86_64 architecture, commonly used in desktop and server environments.
-- **linux/arm64**: ARM 64-bit architecture, used in many modern servers and high-end ARM devices.
-- **linux/arm/v7**: ARM 32-bit architecture, widely used in devices like Raspberry Pi.
-- **linux/ppc64le**: 64-bit PowerPC Little Endian architecture.
-- **linux/s390x**: 64-bit IBM System z architecture.
 
 ### Alpine Support
 

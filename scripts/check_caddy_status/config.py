@@ -19,10 +19,6 @@ GHCR_IMAGE = os.environ.get("GHCR_IMAGE", "") or _github_repository
 # Platforms required in both official and custom images
 REQUIRED_PLATFORMS = {
     "linux/amd64",
-    "linux/arm64",
-    "linux/arm/v7",
-    "linux/ppc64le",
-    "linux/s390x",
 }
 
 # Modules built into the Docker image — must match Dockerfile
