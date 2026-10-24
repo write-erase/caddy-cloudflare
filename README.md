@@ -27,7 +27,6 @@ Deploy a hassle-free Caddy server with built-in support for Cloudflare DNS-01 AC
 - **Cloudflare DNS Integration**: Integrates Cloudflare DNS for automatic SSL certificate management.
 - **Cloudflare Proxy IP Trust**: Includes the [caddy-cloudflare-ip](https://github.com/WeidiDeng/caddy-cloudflare-ip) module to automatically trust Cloudflare’s proxy IP ranges, ensuring correct client IP addresses are passed through and logged.
 - **Platform**: Builds `linux/amd64` (x86_64) images only, which keeps builds fast.
-- **Alpine-based Image**: Provides a lightweight Alpine-based image for smaller size and faster deployment.
 - **Manual Trigger**: Allows manual triggering of the build process.
 - **Open Source**: Contributions are welcome under the MIT License.
 
@@ -39,8 +38,6 @@ To use the pre-built Docker image, pull it from the GitHub Container Registry:
 
 ```sh
 docker pull ghcr.io/write-erase/caddy-cloudflare:latest
-# alpine
-docker pull ghcr.io/write-erase/caddy-cloudflare:alpine
 ```
 You can use the image in your Docker setup. Here is an example `docker-compose.yml` file:
 ```yaml
@@ -291,30 +288,11 @@ The [caddy-cloudflare](https://github.com/write-erase/caddy-cloudflare/pkgs/cont
 
   > **Note:** Starting from version `v2.11.0`, the image also includes the `caddy-cloudflare-ip` module by default.  
 
-- `alpine`: Always points to the latest stable release of the Alpine-based image.
-  - `<version>-alpine`: Specific version tags for the Alpine-based image (e.g., `2.7.6-alpine`).
-
 ## Platform Support
 
 This fork builds for a single platform:
 
 - **linux/amd64**: Standard x86_64 architecture, commonly used in desktop and server environments.
-
-### Alpine Support
-
-The Alpine-based image provides a lightweight alternative, based on the popular Alpine Linux project. Alpine Linux is much smaller than most distribution base images (~5MB), leading to much slimmer images in general.
-
-#### Benefits of Alpine-based Image
-
-- **Smaller Size**: The image size is significantly reduced, which can be beneficial for faster downloads and reduced storage usage.
-- **Minimal Base**: Alpine Linux uses musl libc instead of glibc, making it lightweight. However, this may lead to compatibility issues with software that requires glibc.
-- **Customization**: To keep the image minimal, additional tools (such as git or bash) are not included by default. You can customize the image by adding the necessary packages in your Dockerfile.
-
-To use the Alpine-based image, pull it from the GitHub Container Registry:
-
-```sh
-docker pull ghcr.io/write-erase/caddy-cloudflare:alpine
-```
 
 # Building Your Own Docker Image
 If you prefer to build your own Docker image, follow these steps:
@@ -337,7 +315,7 @@ If you prefer to build your own Docker image, follow these steps:
 
 3. **Manually trigger the workflow** (optional):
    - Go to the `Actions` tab in your GitHub repository.
-   - Select the `Build and Push Standard Docker Image` workflow (or the Alpine one).
+   - Select the `Build and Push Standard Docker Image` workflow.
    - Click the `Run workflow` button to trigger the build process manually.
 
 4. **Enable the workflow**:
