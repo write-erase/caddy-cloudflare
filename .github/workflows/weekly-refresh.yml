@@ -1,0 +1,47 @@
+name: Weekly Base Image Refresh
+
+# Rebuilds the current Caddy release on a schedule so base image updates
+# (ca-certificates, OS security patches) reach your image even when
+# Caddy and its modules haven't released anything new.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'   # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch rebuild of the current Caddy version
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { data } = await github.rest.repos.getLatestRelease({
+              owner: 'caddyserver',
+              repo: 'caddy'
+            });
+            const version = data.tag_name.replace(/^v/, '');
+
+            // Skip if the official Caddy image for this version isn't published yet
+            const res = await fetch(
+              `https://hub.docker.com/v2/repositories/library/caddy/tags/${version}`
+            );
+            if (!res.ok) {
+              console.log(`Official caddy:${version} not available yet (HTTP ${res.status}); skipping this week.`);
+              return;
+            }
+
+            console.log(`Dispatching base image refresh for Caddy ${version}...`);
+            await github.rest.repos.createDispatchEvent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              event_type: 'caddy-release',
+              client_payload: {
+                caddy_version: version,
+                build_reason: 'base_image_refresh'
+              }
+            });

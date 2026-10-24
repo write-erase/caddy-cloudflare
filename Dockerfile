@@ -11,5 +11,8 @@ RUN xcaddy build \
 # Final stage
 FROM caddy:${CADDY_VERSION}
 
+# Pull in the latest Alpine security patches (e.g. ca-certificates)
+RUN apk upgrade --no-cache
+
 # Copy the custom-built Caddy binary
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy

@@ -22,7 +22,7 @@ jobs:
       image_title: Caddy Cloudflare
       image_description: Caddy with Cloudflare DNS module
       flavor_latest: "auto"
-      create_release: true
+      create_release: ${{ github.event.client_payload.build_reason != 'base_image_refresh' }}
       build_reason: ${{ github.event.client_payload.build_reason || 'manual' }}
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
