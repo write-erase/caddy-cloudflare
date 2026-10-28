@@ -1,6 +1,6 @@
 # Build stage
 ARG CADDY_VERSION
-ARG GO_REPLACES="--replace golang.org/x/net=golang.org/x/net@v0.60.0 --replace github.com/go-chi/chi/v5=github.com/go-chi/chi/v5@v5.4.0"
+ARG GO_REPLACES="--replace golang.org/x/net=golang.org/x/net@v0.62.0 --replace github.com/go-chi/chi/v5=github.com/go-chi/chi/v5@v5.4.0 --replace github.com/go-jose/go-jose/v4=github.com/go-jose/go-jose/v4@v4.1.6"
 FROM caddy:${CADDY_VERSION}-builder AS builder
 ARG GO_REPLACES
 

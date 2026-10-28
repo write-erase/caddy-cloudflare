@@ -146,7 +146,7 @@ jobs:
       - name: Look up latest versions of security-sensitive Go modules
         run: |
           # Add module paths here to keep them at their newest release.
-          MODULES="golang.org/x/net github.com/go-chi/chi/v5"
+          MODULES="golang.org/x/net github.com/go-chi/chi/v5 github.com/go-jose/go-jose/v4"
           FLAGS=""
           for m in $MODULES; do
             v=$(curl -fsSL "https://proxy.golang.org/${m}/@latest" | jq -r .Version || true)
