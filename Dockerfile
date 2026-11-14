@@ -1,6 +1,9 @@
 # Build stage
-ARG CADDY_VERSION
-ARG GO_REPLACES="--replace golang.org/x/net=golang.org/x/net@v0.62.0 --replace github.com/go-chi/chi/v5=github.com/go-chi/chi/v5@v5.4.0 --replace github.com/go-jose/go-jose/v4=github.com/go-jose/go-jose/v4@v4.1.6"
+# Defaults let a plain `docker build .` work; CI passes exact values.
+ARG CADDY_VERSION=2
+# Module overrides come from the workflow, which looks up the newest releases.
+# Left empty here so local builds never pin stale (older) versions.
+ARG GO_REPLACES=""
 ARG GO_TOOLCHAIN=local
 FROM caddy:${CADDY_VERSION}-builder AS builder
 ARG GO_REPLACES
@@ -15,6 +18,7 @@ RUN GOTOOLCHAIN=${GO_TOOLCHAIN} xcaddy build \
     --with github.com/caddy-dns/cloudflare \
     --with github.com/WeidiDeng/caddy-cloudflare-ip \
     --with github.com/fvbommel/caddy-combine-ip-ranges \
+    --with github.com/mholt/caddy-ratelimit \
     ${GO_REPLACES}
 
 # Final stage

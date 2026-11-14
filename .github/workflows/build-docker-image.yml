@@ -150,7 +150,7 @@ jobs:
             github.com/go-jose/go-jose/v4 github.com/go-jose/go-jose/v3 \
             go.opentelemetry.io/otel go.opentelemetry.io/otel/sdk \
             go.opentelemetry.io/otel/sdk/log go.opentelemetry.io/otel/trace \
-            go.opentelemetry.io/otel/metric"
+            go.opentelemetry.io/otel/metric github.com/klauspost/compress"
           FLAGS=""
           for m in $MODULES; do
             v=$(curl -fsSL "https://proxy.golang.org/${m}/@latest" | jq -r .Version || true)
@@ -200,6 +200,8 @@ jobs:
           docker run --rm "${IMAGE}" caddy version
           echo "Checking cloudflare module is loaded..."
           docker run --rm "${IMAGE}" caddy list-modules | grep -q "dns.providers.cloudflare"
+          echo "Checking rate_limit module is loaded..."
+          docker run --rm "${IMAGE}" caddy list-modules | grep -q "http.handlers.rate_limit"
           echo "Build verification passed."
 
       - name: Create GitHub Release

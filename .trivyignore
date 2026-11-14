@@ -1,0 +1,11 @@
+# Findings accepted after review. Each entry needs a reason.
+# Trivy reads this file automatically when run from the repo root,
+# and the Scan Image workflow passes it explicitly.
+
+# golang.org/x/crypto/openpgp is unmaintained (advisory, not a specific bug).
+# Verified 2026-11-14: openpgp is not compiled into the Caddy binary; the only
+# "fix" is an unreleased commit. govulncheck still lists it because the advisory
+# uses wildcard symbols (openpgp/*), so it matches on the module alone.
+# Re-check after adding plugins (expect no output):
+#   grep -a -o 'golang.org/x/crypto/openpgp[a-z0-9/]*' caddy | sort -u
+GO-2026-5932

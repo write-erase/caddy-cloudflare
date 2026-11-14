@@ -1,0 +1,70 @@
+name: Scan Image
+
+# Scans the published image with Trivy and reports findings to the repo's
+# Security tab (Security > Code scanning). Runs daily, so new CVEs in an
+# unchanged image still show up, and after every successful build.
+
+on:
+  schedule:
+    - cron: '23 11 * * *'   # daily, 11:23 UTC
+  workflow_run:
+    workflows: [Build and Push Standard Docker Image]
+    types: [completed]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: read
+  security-events: write
+
+jobs:
+  scan:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-26.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull image
+        run: |
+          IMAGE="ghcr.io/$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]'):latest"
+          echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
+          docker pull "${IMAGE}"
+
+      - name: Scan (table in log)
+        run: |
+          mkdir -p "${HOME}/.cache/trivy"
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "${HOME}/.cache/trivy:/root/.cache/trivy" \
+            -v "${PWD}:/work" -w /work \
+            aquasec/trivy:latest image --scanners vuln \
+            --ignorefile .trivyignore "${IMAGE}"
+
+      - name: Scan (SARIF for Security tab)
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "${HOME}/.cache/trivy:/root/.cache/trivy" \
+            -v "${PWD}:/work" -w /work \
+            aquasec/trivy:latest image --scanners vuln --skip-db-update \
+            --ignorefile .trivyignore \
+            --format sarif --output trivy.sarif "${IMAGE}"
+
+      - name: Upload results to Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy.sarif
+          category: trivy-image

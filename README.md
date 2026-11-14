@@ -26,6 +26,8 @@ Deploy a hassle-free Caddy server with built-in support for Cloudflare DNS-01 AC
 - **Continuous Integration**: Utilizes GitHub Actions for seamless CI/CD.
 - **Cloudflare DNS Integration**: Integrates Cloudflare DNS for automatic SSL certificate management.
 - **Cloudflare Proxy IP Trust**: Includes the [caddy-cloudflare-ip](https://github.com/WeidiDeng/caddy-cloudflare-ip) module to automatically trust Cloudflare’s proxy IP ranges, ensuring correct client IP addresses are passed through and logged.
+- **Rate Limiting**: Includes the [caddy-ratelimit](https://github.com/mholt/caddy-ratelimit) module. It does nothing until you add a `rate_limit` block (and `order rate_limit before basic_auth` in global options) to your Caddyfile. Key it on `{client_ip}` with `trusted_proxies cloudflare` set so limits apply per real visitor, not per Cloudflare IP.
+- **Security Patching**: Builds with the newest stable Go toolchain and forces the latest releases of security-sensitive Go modules (OpenTelemetry, go-jose, `golang.org/x/net`, `golang.org/x/crypto`, chi), so fixes land without waiting for Caddy to bump them. A weekly rebuild also picks up Alpine security updates.
 - **Platform**: Builds `linux/amd64` (x86_64) images only, which keeps builds fast.
 - **Manual Trigger**: Allows manual triggering of the build process.
 - **Open Source**: Contributions are welcome under the MIT License.
@@ -287,6 +289,9 @@ The [caddy-cloudflare](https://github.com/write-erase/caddy-cloudflare/pkgs/cont
     - **`2`**: Major version tag for the latest release within the 2.x series, providing updates within the major version while maintaining compatibility.
 
   > **Note:** Starting from version `v2.11.0`, the image also includes the `caddy-cloudflare-ip` module by default.  
+  > **Note:** Images built from November 2026 onward also include the `caddy-ratelimit` module.
+
+  > **Note:** Version tags are rebuilt in place. Weekly refreshes and security fixes republish the same tag (e.g. `2.11.3`) with a new image digest, so pull again to get the fixes. To pin an exact build, use the digest (`image: ghcr.io/write-erase/caddy-cloudflare@sha256:...`).
 
 ## Platform Support
 
