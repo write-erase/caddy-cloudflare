@@ -146,7 +146,11 @@ jobs:
       - name: Look up latest versions of security-sensitive Go modules
         run: |
           # Add module paths here to keep them at their newest release.
-          MODULES="golang.org/x/net github.com/go-chi/chi/v5 github.com/go-jose/go-jose/v4"
+          MODULES="golang.org/x/net golang.org/x/crypto github.com/go-chi/chi/v5 \
+            github.com/go-jose/go-jose/v4 github.com/go-jose/go-jose/v3 \
+            go.opentelemetry.io/otel go.opentelemetry.io/otel/sdk \
+            go.opentelemetry.io/otel/sdk/log go.opentelemetry.io/otel/trace \
+            go.opentelemetry.io/otel/metric"
           FLAGS=""
           for m in $MODULES; do
             v=$(curl -fsSL "https://proxy.golang.org/${m}/@latest" | jq -r .Version || true)
@@ -159,6 +163,18 @@ jobs:
           done
           echo "GO_REPLACES=${FLAGS}" >> $GITHUB_ENV
 
+      - name: Look up latest Go toolchain
+        run: |
+          # The caddy builder image can lag behind Go point releases, which carry
+          # stdlib security fixes. Build with the newest stable Go instead.
+          GO_TOOLCHAIN=$(curl -fsSL 'https://go.dev/dl/?mode=json' | jq -r '.[0].version' || true)
+          if [ -z "$GO_TOOLCHAIN" ] || [ "$GO_TOOLCHAIN" = "null" ]; then
+            echo "::warning::Go version lookup failed; using the builder image's Go"
+            GO_TOOLCHAIN=local
+          fi
+          echo "Using Go toolchain: ${GO_TOOLCHAIN}"
+          echo "GO_TOOLCHAIN=${GO_TOOLCHAIN}" >> $GITHUB_ENV
+
       - name: Build and push Docker image
         id: build
         uses: docker/build-push-action@v7
@@ -170,6 +186,7 @@ jobs:
           build-args: |
             CADDY_VERSION=${{ env.VERSION }}
             GO_REPLACES=${{ env.GO_REPLACES }}
+            GO_TOOLCHAIN=${{ env.GO_TOOLCHAIN }}
           platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
