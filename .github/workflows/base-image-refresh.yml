@@ -1,0 +1,89 @@
+name: Base Image Refresh
+
+# Keeps OS packages (OpenSSL, ca-certificates, etc.) current without rebuilding
+# for no reason:
+#   - Daily: checks the published image for Alpine packages with updates and
+#     rebuilds only if there are any.
+#   - Mondays: rebuilds regardless, as a backstop (e.g. official Caddy base
+#     image changes that apk can't see).
+#   - Manual: "Run workflow" checks like the daily run; tick "force" to rebuild.
+
+on:
+  schedule:
+    - cron: '41 5 * * *'   # daily, 05:41 UTC
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Rebuild even if no package updates are found'
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write   # needed to dispatch the build
+  packages: read    # needed to pull the image from GHCR
+
+jobs:
+  refresh:
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Find current Caddy release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(gh api repos/caddyserver/caddy/releases/latest --jq .tag_name)
+          VERSION="${VERSION#v}"
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not look up the latest Caddy release."
+            exit 1
+          fi
+          # Skip if the official Caddy image for this version isn't published yet
+          if ! curl -fsS -o /dev/null "https://hub.docker.com/v2/repositories/library/caddy/tags/${VERSION}"; then
+            echo "Official caddy:${VERSION} not available yet; skipping."
+            echo "SKIP=true" >> $GITHUB_ENV
+          fi
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+      - name: Decide whether to rebuild
+        if: env.SKIP != 'true'
+        run: |
+          REBUILD=false
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force }}" = "true" ]; then
+            echo "Forced rebuild requested."
+            REBUILD=true
+          elif [ "${{ github.event_name }}" = "schedule" ] && [ "$(date -u +%u)" = "1" ]; then
+            echo "Monday: weekly backstop rebuild."
+            REBUILD=true
+          else
+            IMAGE="ghcr.io/$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]'):latest"
+            echo "Checking ${IMAGE} for Alpine package updates..."
+            if ! docker pull -q "${IMAGE}"; then
+              echo "Could not pull ${IMAGE}; rebuilding to be safe."
+              REBUILD=true
+            else
+              UPGRADES=$(docker run --rm --user 0 --entrypoint sh "${IMAGE}" \
+                -c 'apk update -q >/dev/null 2>&1 && apk list --upgradable 2>/dev/null')
+              if [ -n "${UPGRADES}" ]; then
+                echo "Packages with updates:"
+                echo "${UPGRADES}"
+                REBUILD=true
+              else
+                echo "All Alpine packages are current; no rebuild needed."
+              fi
+            fi
+          fi
+          echo "REBUILD=${REBUILD}" >> $GITHUB_ENV
+
+      - name: Dispatch rebuild of the current Caddy version
+        if: env.SKIP != 'true' && env.REBUILD == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Dispatching base image refresh for Caddy ${VERSION}..."
+          gh api "repos/${GITHUB_REPOSITORY}/dispatches" \
+            -f event_type=caddy-release \
+            -f "client_payload[caddy_version]=${VERSION}" \
+            -f "client_payload[build_reason]=base_image_refresh"
